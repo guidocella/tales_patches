@@ -1,0 +1,30 @@
+gametitle=Tales of Legendia
+
+[60 FPS battles]
+//jump to the function below
+patch=0,EE,02e2c00,word,08020558
+//halve the speed
+patch=0,EE,00081560,word,C4800068
+patch=0,EE,00081564,word,3C023F00
+patch=0,EE,00081568,word,44826800
+patch=0,EE,0008156c,word,460D0002
+patch=0,EE,00081570,word,080B8B01
+
+//jump to the function below
+patch=0,EE,0139424,word,08020540
+//increase the FPS if in battle
+patch=0,EE,0081500,word,9383848C
+patch=0,EE,0081504,word,240C4918
+patch=0,EE,0081508,word,240D0100
+patch=0,EE,008150c,word,018D0018
+patch=0,EE,0081510,word,00006012
+patch=0,EE,0081514,word,218C00F8
+patch=0,EE,0081518,word,00000000
+patch=0,EE,008151c,word,00000000
+patch=0,EE,0081520,word,8D8C0000
+patch=0,EE,0081524,word,00000000
+patch=0,EE,0081528,word,15800002
+patch=0,EE,008152c,word,00000000
+patch=0,EE,0081530,word,0804E50A
+patch=0,EE,0081534,word,0804E50C
+patch=0,EE,0081538,word,00000000
