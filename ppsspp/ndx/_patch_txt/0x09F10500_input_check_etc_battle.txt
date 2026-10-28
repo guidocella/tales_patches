@@ -19,6 +19,30 @@ address: 0x09F10500
 loop_start:
 	sw s3,0x4(s1) //store pad update index
 	
+	//menu (triangle), was player 1 only at 0x088145AC
+	jal	0x09F00370 //input get
+	li	a0,0x0
+	lhu	a0,0x26(s2) // menu button bind check
+	and	a0,v0,a0
+	beq	a0,zero,no_menu
+	nop
+	lb	a0,0x659(s2)
+	beq	a0,zero,no_menu
+	nop
+	lb	a0,0x63B(s2)
+	bne	a0,zero,no_menu
+	nop
+	jal	z_un_0880f154
+	move	a0,s2
+	bne	v0,zero,no_menu
+	nop
+	sw	s3,0x54(s1) //focus owner: menu, pause and target states use this player's pad and char
+	jal	z_un_0880d12c //open menu
+	move	a0,s2
+	b	end
+	nop
+no_menu:
+
 	jal	0x09F00300
 	li	a0,0x0
 	lhu	a0,0x2A(s2) // right trigger (target) bind check
@@ -37,6 +61,7 @@ loop_start:
 	li	a0,0x14
 	mtc1	zero,f12
 	sb	a0,0x5ED(s2)
+	sw	s3,0x54(s1) //focus owner
 	lui	a0,0x8B3
 	sb	zero,0x5FF(s2)
 	addiu	a0,a0,-0x5EB0
@@ -59,6 +84,7 @@ label_1:
 
 label_2:
 
+	sw	s3,0x54(s1) //focus owner
 	jal	z_un_0880d670
 	move	a0,s2
 	//b	loop
@@ -119,6 +145,7 @@ loop:
 	nop
 
 end:
+	sw zero,0x4(s1) //back to pad 1 for everything outside the loops
 
 	//jal	z_un_0880e568
 	

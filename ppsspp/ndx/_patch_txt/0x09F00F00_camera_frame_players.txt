@@ -1,0 +1,110 @@
+address: 0x09F00F00
+
+//end of the battle camera's framing (0x0881C06C in FUN_08819290): f20/f24 are the x of the two points the camera
+//keeps in view (0x088337D0 centers between them and zooms out with their distance), f22/f26 their y.
+//Widen them to every player's char: player 1's, and the other players' unless their char is on auto or dead.
+//s3 = camera
+
+	lui	t0,0x8AF
+	lbu	t1,0x2524(t0) //main 0x08AF1F30 + 0x5F4: ally count
+	li	t2,0x0 //player
+loop:
+	beq	t2,t1,clamp
+	nop
+	lui	t3,0x81E
+	addu	t3,t3,t2
+	lb	t3,0x30(t3) //party slot of the player
+	sltu	t4,t3,t1
+	beq	t4,zero,next
+	sll	t3,t3,0x2
+	addu	t3,t3,t0
+	lw	t3,0x2EF0(t3) //main + 0xFC0: party chars
+	beq	t3,zero,next
+	nop
+	lw	t4,0x194(t3)
+	andi	t4,t4,0x8 //dead
+	bne	t4,zero,next
+	nop
+	beq	t2,zero,include
+	nop
+	lb	t4,0x35(t3) //control mode, 0 = auto
+	beq	t4,zero,next
+	nop
+include:
+	lwc1	f12,0x268(t3)
+	lwc1	f13,0x26C(t3)
+	c.lt.s	f12,f20
+	nop
+	bc1tl	x_min_done
+	mov.s	f20,f12
+x_min_done:
+	c.lt.s	f24,f12
+	nop
+	bc1tl	x_max_done
+	mov.s	f24,f12
+x_max_done:
+	c.lt.s	f13,f22
+	nop
+	bc1tl	y_min_done
+	mov.s	f22,f13
+y_min_done:
+	c.lt.s	f26,f13
+	nop
+	bc1tl	next
+	mov.s	f26,f13
+next:
+	b	loop
+	addiu	t2,t2,0x1
+
+//same limits as the original code before the hook: x in [-7, f30], y in [0.4, f28]
+clamp:
+	lui	t0,0xC0E0
+	mtc1	t0,f12 //-7.0
+	lui	t0,0x3ECC
+	ori	t0,t0,0xCCCD
+	mtc1	t0,f13 //0.4
+	c.lt.s	f20,f30
+	nop
+	bc1fl	clamp_1
+	mov.s	f20,f30
+clamp_1:
+	c.lt.s	f24,f30
+	nop
+	bc1fl	clamp_2
+	mov.s	f24,f30
+clamp_2:
+	c.le.s	f20,f12
+	nop
+	bc1tl	clamp_3
+	mov.s	f20,f12
+clamp_3:
+	c.le.s	f24,f12
+	nop
+	bc1tl	clamp_4
+	mov.s	f24,f12
+clamp_4:
+	c.lt.s	f22,f28
+	nop
+	bc1fl	clamp_5
+	mov.s	f22,f28
+clamp_5:
+	c.lt.s	f26,f28
+	nop
+	bc1fl	clamp_6
+	mov.s	f26,f28
+clamp_6:
+	c.le.s	f22,f13
+	nop
+	bc1tl	clamp_7
+	mov.s	f22,f13
+clamp_7:
+	c.le.s	f26,f13
+	nop
+	bc1tl	clamp_8
+	mov.s	f26,f13
+clamp_8:
+	swc1	f22,0x284(s3)
+	swc1	f26,0x288(s3)
+	swc1	f20,0x28C(s3)
+	j	0x0881C07C
+	swc1	f24,0x290(s3)

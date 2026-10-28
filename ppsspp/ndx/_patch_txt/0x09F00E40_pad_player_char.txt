@@ -1,0 +1,25 @@
+address: 0x09F00E40
+
+//0x0880E568 (char in main + 0x5F8) for code run once per player: the char of the player whose pad is being read
+//(0x081E0004), e.g. so shortcut_encapsulator's calls of 0x08866F78 use each player's own shortcuts
+//a0 = main
+
+	lui	t0,0x81E
+	lw	t0,0x4(t0)
+	beq	t0,zero,player_1
+	nop
+	addiu	sp,sp,-0x8
+	sw	ra,0x0(sp)
+	sw	a0,0x4(sp)
+	jal	0x09F00D00
+	move	a0,t0
+	lw	ra,0x0(sp)
+	lw	a0,0x4(sp)
+	bne	v0,zero,return
+	addiu	sp,sp,0x8
+player_1:
+	j	0x0880E568
+	nop
+return:
+	jr	ra
+	nop

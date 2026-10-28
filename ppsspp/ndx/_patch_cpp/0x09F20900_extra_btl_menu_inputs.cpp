@@ -24,9 +24,16 @@ void btl_menu_extra_input_checks()
     uint16_t selButtonBind = *(uint16_t*)(mainPtr+0x2e);
     uint16_t lButtonBind = *(uint16_t*)(mainPtr+0x42);
 
+    //while the focus owner's pad struct is swapped into pad 1's (0x09F00000 focus), their pads are swapped too
+    uint32_t swapped = *(uint32_t*)(cMemPtr+0x58);
+
     for(int i = 0; i < partySize; i++)
     {
-        int bMask = get_btn_0x4850(0,i);
+        unsigned int pad = i;
+        if(swapped != 0 && i == 0) pad = swapped;
+        else if(swapped != 0 && i == swapped) pad = 0;
+
+        int bMask = get_btn_0x4850(0,pad);
 
         //char cycle
         if( (bMask&lButtonBind)!=0 )

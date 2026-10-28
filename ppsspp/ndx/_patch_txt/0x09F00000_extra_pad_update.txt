@@ -1,0 +1,200 @@
+address: 0x09F00000
+
+//pads 2-4 get the same per-frame processing as pad 1 (0x088E9290, struct at 0x08A3B79C):
+//their structs live at 0x082FF000 + 0x400 * player, raw input comes from the fork's 0x0E000000 + 0x10 * player
+//0x081E0050 = player whose struct is being updated (0 = the real pad)
+//0x081E0054 = focus owner (who opened the menu, paused or pressed R), 0x081E0058 = player whose struct is swapped
+//into 0x08A3B79C until the next update, so menu/pause/target code reading pad 1 reads the focus owner
+
+//replaces the sceCtrlReadBufferPositive call at 0x088E92B8, a0 = SceCtrlData buffer
+read_pad:
+	lui	t0,0x81E
+	lw	t1,0x50(t0)
+	bne	t1,zero,extra_pad
+	lw	t2,0x58(t0)
+	beq	t2,zero,real_pad
+	sw	zero,0x58(t0)
+	move	t8,a0 //swap the focus owner's struct back before updating pad 1
+	move	t9,ra
+	jal	swap_pad_struct
+	move	a0,t2
+	move	a0,t8
+	j	0x089830BC //sceCtrlReadBufferPositive
+	move	ra,t9
+extra_pad:
+	sll	t1,t1,0x4
+	lui	t0,0xE00
+	addu	t1,t1,t0
+	lw	t2,0x0(t1) //timestamp, 0 when the fork mirrors nothing into this pad
+	lw	t3,0x4(t1)
+	lw	t4,0x8(t1)
+	bne	t2,zero,store_pad
+	lw	t5,0xC(t1)
+	li	t3,0x0 //no buttons
+	li	t4,0x8080 //centered stick
+	li	t5,0x0
+store_pad:
+	sw	t2,0x0(a0)
+	sw	t3,0x4(a0)
+	sw	t4,0x8(a0)
+	sw	t5,0xC(a0)
+	jr	ra
+	li	v0,0x1
+real_pad:
+	lbu	t1,0x64(t0) //in battle (0x09F01C00)
+	beq	t1,zero,0x09F01D00 //field_pad_merge
+	nop
+	j	0x089830BC //sceCtrlReadBufferPositive
+	nop
+
+
+.org 0x09F000A0
+//epilogue of 0x088E9290, s0 = frames elapsed
+pad_epilogue:
+	lui	t0,0x81E
+	lw	t1,0x50(t0)
+	bne	t1,zero,return //nested call for an extra pad
+	nop
+	addiu	sp,sp,-0x8
+	sw	s3,0x0(sp)
+	jal	init_and_count
+	nop
+	li	s3,0x1
+extra_pad_loop:
+	lui	t0,0x81E
+	sw	s3,0x50(t0)
+	jal	swap_pad_struct
+	move	a0,s3
+	jal	0x088E9290
+	move	a0,s0
+	jal	swap_pad_struct
+	move	a0,s3
+	addiu	s3,s3,0x1
+	slti	t0,s3,0x4
+	bne	t0,zero,extra_pad_loop
+	nop
+	lui	t0,0x81E
+	sw	zero,0x50(t0)
+	jal	focus
+	nop
+	lw	s3,0x0(sp)
+	addiu	sp,sp,0x8
+return:
+	lw	s0,0x0(sp)
+	lw	s1,0x4(sp)
+	lw	s2,0x8(sp)
+	lw	ra,0xC(sp)
+	jr	ra
+	addiu	sp,sp,0x10
+
+//exchange the 0x130 byte pad struct at 0x08A3B79C with player a0's
+swap_pad_struct:
+	lui	t0,0x8A4
+	addiu	t0,t0,-0x4864
+	lui	t1,0x830
+	addiu	t1,t1,-0x1000
+	sll	t2,a0,0xA
+	addu	t1,t1,t2
+	li	t2,0x130
+swap_loop:
+	lw	t3,0x0(t0)
+	lw	t4,0x0(t1)
+	sw	t4,0x0(t0)
+	sw	t3,0x0(t1)
+	addiu	t0,t0,0x4
+	addiu	t2,t2,-0x4
+	bne	t2,zero,swap_loop
+	addiu	t1,t1,0x4
+	jr	ra
+	nop
+
+//player i controls party slot i until someone cycles (0x081E0030), 0x081E0060 marks it as set up
+//0x081E000C = number of party members not on auto
+init_and_count:
+	lui	t0,0x81E
+	lw	t1,0x60(t0)
+	li	t2,0x4E44584D //"MXDN"
+	beq	t1,t2,count
+	nop
+	sw	t2,0x60(t0)
+	li	t1,0x03020100
+	sw	t1,0x30(t0)
+count:
+	li	t4,0x0
+	lui	t1,0x8AF
+	lbu	t2,0x2524(t1) //main 0x08AF1F30 + 0x5F4: ally count
+	sltiu	t3,t2,0x5
+	beq	t3,zero,store_count
+	nop
+	li	t3,0x0
+count_loop:
+	beq	t3,t2,store_count
+	nop
+	sll	t5,t3,0x2
+	addu	t5,t5,t1
+	lw	t5,0x2EF0(t5) //main + 0xFC0: party chars
+	lui	t6,0x880
+	sltu	t6,t5,t6
+	bne	t6,zero,count_next
+	nop
+	lui	t6,0xA00
+	sltu	t6,t5,t6
+	beq	t6,zero,count_next
+	nop
+	lb	t6,0x35(t5) //control mode, 0 = auto
+	beq	t6,zero,count_next
+	nop
+	addiu	t4,t4,0x1
+count_next:
+	b	count_loop
+	addiu	t3,t3,0x1
+store_count:
+	jr	ra
+	sb	t4,0xC(t0)
+
+//main + 0x5F8 is the party slot the battle treats as player-controlled (0x0880E568, menus, target states):
+//the focus owner's while in a menu, paused or in the R target states, player 1's otherwise.
+//The focus owner's pad struct is swapped in for those states too (undone by read_pad).
+focus:
+	lui	t0,0x81E
+	lui	t1,0x8AF
+	lbu	t2,0x2524(t1) //main 0x08AF1F30 + 0x5F4: ally count
+	addiu	t3,t2,-0x1
+	sltiu	t3,t3,0x4
+	beq	t3,zero,focus_return //1-4 allies
+	lbu	t3,0x251D(t1) //main + 0x5ED: battle state
+	addiu	t4,t3,-0x3
+	sltiu	t4,t4,0x18
+	beq	t4,zero,focus_return //3-0x1A: running or in a battle menu
+	li	t5,0x0
+	lbu	t4,0x54(t0) //focus owner
+	beq	t4,zero,set_controlled
+	sltu	t6,t4,t2
+	beq	t6,zero,set_controlled
+	addiu	t6,t3,-0xF
+	sltiu	t7,t6,0x7
+	bne	t7,zero,focused //0xF-0x15: menus and R target states
+	addiu	t6,t3,-0x17
+	sltiu	t7,t6,0x4
+	beq	t7,zero,set_controlled //0x17-0x1A: pause and menus
+	nop
+focused:
+	move	t5,t4
+	sw	t4,0x58(t0)
+	addiu	sp,sp,-0x8
+	sw	ra,0x0(sp)
+	sw	t5,0x4(sp)
+	jal	swap_pad_struct
+	move	a0,t4
+	lw	ra,0x0(sp)
+	lw	t5,0x4(sp)
+	addiu	sp,sp,0x8
+	lui	t0,0x81E
+	lui	t1,0x8AF
+set_controlled:
+	addu	t6,t0,t5
+	lb	t6,0x30(t6) //party slot of that player
+	sb	t6,0x2528(t1) //main + 0x5F8
+focus_return:
+	jr	ra
+	nop

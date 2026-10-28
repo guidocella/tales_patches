@@ -72,7 +72,10 @@ label_3:
 	lbu	a0,0x5FA(s0)
 	lb	s1,0x31(v0)
 	sb	s1,0x32(v0)
-	lb	s1,0x33(v0)
+	jal	0x09F00EC0 //manual_target: enemy, not the AI's ally target
+	move	a0,v0
+	move	s1,v0
+	move	v0,s3
 	sb	s1,0x31(v0)
 	lbu	a0,0x5FA(s0)
 
@@ -90,7 +93,10 @@ label_5:
 	lb	a0,0x35(v0)
 	beq	a0,zero,label_4
 	nop	
-	lb	s1,0x33(v0)
+	jal	0x09F00EC0 //manual_target: enemy, not the AI's ally target
+	move	a0,v0
+	move	s1,v0
+	move	v0,s3
 	sb	s1,0x31(v0)
 
 label_4:

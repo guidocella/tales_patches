@@ -17,15 +17,8 @@ loop_start:
 	
 	slt	t5,s5,zero
 	bne	t5,zero,continue
-	
-	lbu	a0,0x3D(s0)
-	lw	a1,0x4AC(s2)
-	lhu	a2,0xCA(s0)
-	mult	a0,a1
-	mflo	a0
-	addu	a0,a2,a0
-	sh	a0,0xCA(s0)
-	nop	
+	nop
+	//the 0xCA update before the hooked call at 0x08847A68 is only for enemies (0x08847A4C), and runs once
 	
 		
 	lb t0,0x627(s2) //mimic active
@@ -111,6 +104,7 @@ continue:
 return:
 	lh	a0,0xCE(s0) //what is this
 	
+	lui	t7,0x81E //the jals in the loop clobber t7
 	sw	zero,0x4(t7)
 	lw	s4,0xC(sp)
 	lw	s5,0x8(sp)

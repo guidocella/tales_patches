@@ -16,6 +16,8 @@ fnc_start:
 		//required setup for later in the function
 		lui	s5,0x8B3
 		addiu	s5,s5,-0x5EB0
+		li	s3,0x1 //status bit shifts below, set by the original prologue
+		li	s7,0x2 //compared with 0x5FA below, set by the original prologue
 		
 		move	s1,a0 //should be the main ptr
 		move	fp,a1 //should be the main ptr

@@ -1,0 +1,18 @@
+address: 0x09F00E00
+
+//0x08848BD0 (char input update) only takes input for the char in main + 0x5F8 (player 1's party slot):
+//take it for the char of the player whose pad is being read (0x081E0004) instead
+//s0 = char, s1 = main
+
+	lui	a0,0x81E
+	lw	a1,0x4(a0)
+	addu	a0,a0,a1
+	lb	a0,0x30(a0) //party slot of the player
+	lbu	a1,0x5(s0)
+	beq	a0,a1,player_char
+	nop
+	j	0x08849560 //no input for this char
+	nop
+player_char:
+	j	0x08848C60
+	nop

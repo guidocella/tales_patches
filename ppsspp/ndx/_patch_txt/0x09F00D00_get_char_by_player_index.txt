@@ -1,0 +1,28 @@
+address: 0x09F00D00
+
+//a0 = player index, returns the char that player controls or 0
+//callers keep values in t and a registers across this, so only v0 changes
+
+	addiu	sp,sp,-0x8
+	sw	t0,0x0(sp)
+	sw	t1,0x4(sp)
+	lui	t0,0x8AF
+	lbu	t1,0x2524(t0) //main 0x08AF1F30 + 0x5F4: ally count
+	sltu	v0,a0,t1
+	beq	v0,zero,null
+	lui	v0,0x81E
+	addu	v0,v0,a0
+	lb	v0,0x30(v0) //party slot of the player
+	sltu	t1,v0,t1
+	beq	t1,zero,null
+	sll	v0,v0,0x2
+	addu	v0,v0,t0
+	b	end
+	lw	v0,0x2EF0(v0) //main + 0xFC0: party chars
+null:
+	li	v0,0x0
+end:
+	lw	t0,0x0(sp)
+	lw	t1,0x4(sp)
+	jr	ra
+	addiu	sp,sp,0x8

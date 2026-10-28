@@ -1,4 +1,4 @@
-address: 0x09F20750
+address: 0x09F20850 //was 0x09F20750, inside 0x09F20700_get_button_by_p_index
 
 	
 	lb	a2,0x620(s4) //last ob/hiougi

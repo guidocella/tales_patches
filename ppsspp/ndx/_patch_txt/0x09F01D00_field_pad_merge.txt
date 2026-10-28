@@ -1,0 +1,42 @@
+address: 0x09F01D00
+
+//outside battles (in_battle_flag) every player drives pad 1, instead of extra_pad_update's real_pad: buttons of pads 2-4 ORed in, the first tilted stick wins
+	addiu	sp,sp,-0x8
+	sw	ra,0x0(sp)
+	jal	0x089830BC
+	sw	a0,0x4(sp)
+	lw	ra,0x0(sp)
+	lw	a0,0x4(sp)
+	addiu	sp,sp,0x8
+	lui	t0,0xE00
+	li	t1,0x1
+merge_loop:
+	sll	t2,t1,0x4
+	addu	t2,t2,t0
+	lw	t3,0x0(t2) //timestamp, 0 when the fork mirrors nothing into this pad
+	beq	t3,zero,merge_next
+	nop
+	lw	t3,0x4(t2)
+	lw	t4,0x4(a0)
+	or	t4,t4,t3
+	sw	t4,0x4(a0)
+	lbu	t3,0x8(a0) //pad 1's stick already tilted?
+	addiu	t3,t3,-0x80
+	addiu	t3,t3,0x30
+	sltiu	t3,t3,0x61
+	beq	t3,zero,merge_next
+	lbu	t3,0x9(a0)
+	addiu	t3,t3,-0x80
+	addiu	t3,t3,0x30
+	sltiu	t3,t3,0x61
+	beq	t3,zero,merge_next
+	nop
+	lhu	t3,0x8(t2)
+	sh	t3,0x8(a0)
+merge_next:
+	addiu	t1,t1,0x1
+	slti	t2,t1,0x4
+	bne	t2,zero,merge_loop
+	nop
+	jr	ra
+	li	v0,0x1

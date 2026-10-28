@@ -1,0 +1,20 @@
+address: 0x09F00EC0
+
+//a0 = char switching to manual: its AI target (0x33) if that's an enemy, otherwise the closest enemy
+//(an AI target is often an ally, e.g. 0 = player 1, which put the new manual target arrow on them)
+
+	addiu	sp,sp,-0x8
+	sw	ra,0x0(sp)
+	lb	v0,0x33(a0)
+	lui	t0,0x8AF
+	lbu	t0,0x2524(t0) //main 0x08AF1F30 + 0x5F4: ally count, enemies come after
+	slt	t1,v0,t0
+	beq	t1,zero,return
+	nop
+	lbu	a0,0x5(a0)
+	jal	0x09F01900 //get_closest_chara_func
+	li	a1,0x2 //enemies
+return:
+	lw	ra,0x0(sp)
+	jr	ra
+	addiu	sp,sp,0x8

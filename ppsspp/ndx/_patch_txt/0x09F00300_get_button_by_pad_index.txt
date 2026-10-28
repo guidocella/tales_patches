@@ -1,0 +1,26 @@
+address: 0x09F00300
+
+//the 0x088E94A0/94D0/9500/9530 button getters for the player in 0x081E0004 (see 0x09F20700_get_button_by_p_index)
+
+btn_4854: //0x088E94A0
+	lui	t0,0x81E
+	j	0x09F20750
+	lw	a1,0x4(t0)
+
+.org 0x09F00340
+btn_484C: //0x088E9500
+	lui	t0,0x81E
+	j	0x09F207A0
+	lw	a1,0x4(t0)
+
+.org 0x09F00350
+btn_4848: //0x088E9530
+	lui	t0,0x81E
+	j	0x09F207F0
+	lw	a1,0x4(t0)
+
+.org 0x09F00370
+btn_4850: //0x088E94D0
+	lui	t0,0x81E
+	j	0x09F20700
+	lw	a1,0x4(t0)

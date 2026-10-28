@@ -44,8 +44,8 @@ address: 0x9F02100
   beq v0,a2,error_unable //no other character found
   nop
 
-  sw v0,0x9CE(s0)
-  sw v0,0x9CF(s0) //store for later use
+  sb v0,0x9CE(s0) //byte fields, was sw
+  sb v0,0x9CF(s0) //store for later use
   
   j skip_cleanup
   nop

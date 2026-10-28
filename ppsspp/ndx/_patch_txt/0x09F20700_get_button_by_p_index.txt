@@ -30,7 +30,7 @@ return_0:
 
 og_function_0:
 
-	j	0x088E94D4
+	j	0x088E94D0 //function start: 0x088E94D4 expects a1 = a0 & 0xFF
 	nop
 
 //
@@ -62,7 +62,7 @@ return_1:
 
 og_function_1:
 
-	j	 0x088E94A4
+	j	 0x088E94A0
 	nop
 	
 //
@@ -94,7 +94,7 @@ return_2:
 
 og_function_2:
 
-	j	 0x088E9504
+	j	 0x088E9500
 	nop
 
 //
@@ -126,5 +126,5 @@ return_3:
 
 og_function_3:
 
-	j	 0x088E9534
+	j	 0x088E9530
 	nop
