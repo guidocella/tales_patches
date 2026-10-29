@@ -18,6 +18,8 @@ address: 0x09F10500
 	
 loop_start:
 	sw s3,0x4(s1) //store pad update index
+	jal	0x09F01E00 //valid_manual_target
+	move	a0,s3
 	
 	//menu (triangle), was player 1 only at 0x088145AC
 	jal	0x09F00370 //input get

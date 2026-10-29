@@ -1,0 +1,50 @@
+address: 0x09F01E00
+
+//a0 = player index; called every battle frame from input_check. Points a non-auto player's manual target (0x31)
+//at the closest enemy when it isn't a live enemy: a char that starts a battle on manual without being player 1
+//has target 0 = player 1 (their arrow was drawn on player 1), and only player 1's char (main+0x5F8) gets
+//retargeted by the game when its enemy dies
+
+	addiu	sp,sp,-0x8
+	sw	ra,0x0(sp)
+	jal	0x09F00D00 //get_char_by_player_index
+	nop
+	beq	v0,zero,return
+	nop
+	lb	t0,0x35(v0) //control mode, 0 = auto
+	beq	t0,zero,return
+	lui	t1,0x8AF
+	lbu	t2,0x2525(t1) //main 0x08AF1F30 + 0x5F5: enemy count
+	lbu	t1,0x2524(t1) //main + 0x5F4: ally count, enemies come after
+	addu	t2,t2,t1
+	lb	t0,0x31(v0)
+	slt	t3,t0,t1
+	bne	t3,zero,retarget //an ally
+	slt	t3,t0,t2
+	beq	t3,zero,retarget //past the enemies
+	sll	t0,t0,0x2
+	lui	t3,0x8AF
+	addu	t3,t3,t0
+	lw	t3,0x2EF0(t3) //main + 0xFC0: chars
+	beq	t3,zero,retarget
+	nop
+	lw	t3,0x194(t3)
+	andi	t3,t3,0xC //0x8 dead, 0x4 untargetable (set first when an enemy dies)
+	beq	t3,zero,return
+	nop
+retarget:
+	sw	v0,0x4(sp)
+	lbu	a0,0x5(v0)
+	jal	0x09F01900 //get_closest_chara_func, returns a0 if no enemy
+	li	a1,0x2 //enemies
+	lw	t0,0x4(sp)
+	lui	t1,0x8AF
+	lbu	t1,0x2524(t1)
+	slt	t1,v0,t1
+	bne	t1,zero,return //no enemy left
+	nop
+	sb	v0,0x31(t0)
+return:
+	lw	ra,0x0(sp)
+	jr	ra
+	addiu	sp,sp,0x8

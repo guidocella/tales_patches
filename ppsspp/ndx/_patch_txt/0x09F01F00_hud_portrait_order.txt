@@ -1,0 +1,33 @@
+address: 0x09F01F00
+
+//replaces the portrait order loop of the battle HUD (0x0888DC24-0x0888DC7C in FUN_0888dbcc), which put main+0x5F8
+//first and the rest after it in slot order: portrait n is now player n's char (slot table 0x081E0030), so player
+//1's char is the big one and the other players' chars keep their spots when player 1 changes char with L.
+//With the other players on auto this is the vanilla order.
+//s4 = HUD; returns a0 = ally count and a3 = main like the original loop
+
+	lui	a3,0x8AF
+	addiu	a3,a3,0x1F30
+	lbu	a0,0x5F4(a3) //ally count
+	li	a2,0x0 //player = portrait position
+	lui	t1,0x81E
+loop:
+	slt	t0,a2,a0
+	beq	t0,zero,return
+	addu	t2,t1,a2
+	lb	a1,0x30(t2) //party slot of the player
+	sltu	t0,a1,a0
+	beq	t0,zero,next
+	sll	t0,a1,0x6
+	sll	t3,a1,0x4
+	addu	t0,t0,t3
+	sll	t3,a1,0x3
+	addu	t0,t0,t3 //slot * 0x58
+	addu	t0,s4,t0
+	sb	a2,0x1B(t0)
+next:
+	b	loop
+	addiu	a2,a2,0x1
+return:
+	jr	ra
+	nop

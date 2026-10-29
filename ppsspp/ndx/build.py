@@ -80,6 +80,7 @@ COOP = [
     (0x08814EF8, 'nop', 'menu L for player 1 -> extra_btl_menu_inputs, for every player'),
     (0x08814F4C, 'nop', 'menu select for player 1 -> extra_btl_menu_inputs, for every player'),
     (0x0886731C, 'j 0x09F20500 :: nop', 'block_commands_to_manual_characters'),
+    (0x0888DC24, 'jal 0x09F01F00 :: nop :: b 0x0888DC80 :: nop', 'hud_portrait_order'),
 ]
 # Also used by the co-op code, so in both cheats
 SHARED_FILES = {'0x9F01900_get_closest_chara_func-MEEBO.txt'}
